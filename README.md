@@ -1,2 +1,3 @@
-# evm-data-decoder
-Decode EVM Input data
+# react-native-evm-data-decoder
+
+- Decode EVM Input data
