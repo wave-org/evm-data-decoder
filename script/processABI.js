@@ -18,16 +18,17 @@ fs.readdirSync("./src/abi").forEach((file, index) => {
         abi.stateMutability !== "view" &&
         abi.stateMutability !== "pure"
       ) {
-        abi.outputs = [];
+        // abi.outputs = [];
         outputJson.push(abi);
       }
     });
-    // fs.writeFileSync(path, JSON.stringify(outputJson, null, 2));
-    fs.writeFileSync(path, JSON.stringify(outputJson));
 
+    fs.writeFileSync(path, JSON.stringify(outputJson, null, 2));
     indexTS =
       indexTS +
-      `import data${index} from "./${file}";\nabiList.push(data${index});\n`;
+      `const data${index} =\`${JSON.stringify(
+        outputJson
+      )}\`;\nabiList.push(JSON.parse(data${index}));\n`;
   }
 });
 
