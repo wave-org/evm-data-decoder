@@ -1,6 +1,6 @@
 {
   "name": "evm-data-decoder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Decode input data of EVM-compatible transactions",
   "keywords": [
     "ethereum",

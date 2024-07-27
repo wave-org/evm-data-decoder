@@ -24,6 +24,8 @@ export interface ABIDatabase {
 
 export class EVMInputDataDecoder {
   private signatureMap: Map<string, FunctionFragment[]> = new Map();
+  // use minimal format of function as key to check if this type of function is already loaded
+  private functionKeyMap: Map<string, boolean> = new Map();
   public database: ABIDatabase | null; // TODO
 
   constructor(database: ABIDatabase | null = null) {
@@ -45,6 +47,9 @@ export class EVMInputDataDecoder {
       const abi = abiList[i];
       const contract = new Interface(abi);
       contract.forEachFunction((fragment) => {
+        if (this.functionKeyExists(fragment)) {
+          return;
+        }
         const sig = fragment.selector;
         let list = this.signatureMap.get(sig);
         if (list === undefined) {
@@ -63,6 +68,9 @@ export class EVMInputDataDecoder {
         const abi = list[i];
         const contract = new Interface(abi);
         contract.forEachFunction((fragment) => {
+          if (this.functionKeyExists(fragment)) {
+            return;
+          }
           const sig = fragment.selector;
           let list = this.signatureMap.get(sig);
           if (list === undefined) {
@@ -78,6 +86,9 @@ export class EVMInputDataDecoder {
   public async importABI(abi: string) {
     const contract = new Interface(abi);
     contract.forEachFunction((fragment) => {
+      if (this.functionKeyExists(fragment)) {
+        return;
+      }
       const sig = fragment.selector;
       let list = this.signatureMap.get(sig);
       if (list === undefined) {
@@ -89,6 +100,15 @@ export class EVMInputDataDecoder {
     if (this.database !== null) {
       await this.database.saveABI(abi);
     }
+  }
+
+  private functionKeyExists(fragment: FunctionFragment) {
+    const key = fragment.format("minimal");
+    if (this.functionKeyMap.get(key) === true) {
+      return true;
+    }
+    this.functionKeyMap.set(key, true);
+    return false;
   }
 
   public async deleteSavedABI() {
@@ -115,16 +135,6 @@ export class EVMInputDataDecoder {
       let types = fragment.inputs.map((x) => x.type);
       const ifc = new Interface([]);
       let decodeResult = ifc.decodeFunctionData(fragment, inputData);
-      // try {
-      //   decodeResult = ifc.decodeFunctionData(fragment, inputData);
-      // } catch (err) {
-      //   console.log("error: " + err);
-      //   return;
-      // }
-      // if (decodeResult === undefined) {
-      //   return;
-      // }
-
       const names = fragment.inputs.map((x) => x.name);
 
       let result: InputData[] = [];
